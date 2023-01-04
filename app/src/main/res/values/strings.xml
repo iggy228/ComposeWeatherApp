@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Compose Weather App</string>
+    <string name="add_new_city">Add new city</string>
+</resources>
