@@ -3,6 +3,9 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+def someExtraProperty = new Properties()
+someExtraProperty.load(new FileInputStream(rootProject.file("local.properties")))
+
 android {
     namespace 'com.example.composeweatherapp'
     compileSdk 33
@@ -18,7 +21,7 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
-        buildConfigField("String", "WEATHER_API_KEY", WEATHER_API_KEY)
+        buildConfigField("String", "WEATHER_API_KEY", someExtraProperty.getProperty("WEATHER_API_KEY"))
     }
 
     buildTypes {
@@ -62,6 +65,9 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
     implementation('com.squareup.retrofit2:converter-moshi:2.9.0')
+
+    // Location service
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
