@@ -17,4 +17,17 @@ class WeatherRepository(private val api: WeatherApi) {
         }
         return null
     }
+
+    suspend fun getForecastData(
+        lat: Double,
+        long: Double,
+        units: String = "metric"
+    ): ForecastDataDto? {
+        try {
+            return api.getForecastWeatherData(lat, long, apiKey, units)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
 }

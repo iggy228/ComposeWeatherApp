@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.composeweatherapp.R
 import com.example.composeweatherapp.data.WeatherApi
 import com.example.composeweatherapp.data.WeatherRepository
+import com.example.composeweatherapp.helpers.LocationServiceHelper
 import com.example.composeweatherapp.helpers.RetrofitHelper
 import com.example.composeweatherapp.viewmodel.WeatherViewModel
 import com.example.composeweatherapp.viewmodel.WeatherViewModelFactory
@@ -30,7 +31,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-val cityName = "Harlem"
 val datetime = Date()
 val formatter = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
 
@@ -63,14 +63,15 @@ fun HomeScreen(
     weatherViewModel: WeatherViewModel = viewModel(
         factory = WeatherViewModelFactory(
             WeatherRepository(
-                RetrofitHelper.getInstance().create(WeatherApi::class.java)
-            )
+                RetrofitHelper.instance.create(WeatherApi::class.java),
+            ),
+            LocationServiceHelper.locationService!!
         )
     )
 ) {
     val weatherUiState by weatherViewModel.weatherData.collectAsState()
     LaunchedEffect(key1 = null) {
-        weatherViewModel.getActualWeatherData()
+        weatherViewModel.getActualWeatherDataAndForecast()
     }
     Scaffold(
         modifier = modifier,
@@ -124,7 +125,7 @@ fun HomeScreen(
                     ) {
                         Spacer(modifier = Modifier.height(32.dp))
                         Text(
-                            cityName,
+                            weatherUiState.weatherData!!.name,
                             style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.surface
                         )
@@ -185,9 +186,7 @@ fun HomeScreen(
                             .padding(horizontal = 32.dp)
                             .padding(bottom = 16.dp)
                     ) {
-                        Text(text = "Today")
-                        Text(text = "Today")
-                        Text(text = "Today")
+                        Text(text = weatherUiState.forecastData.toString())
                     }
                 }
             }

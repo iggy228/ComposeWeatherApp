@@ -7,10 +7,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object RetrofitHelper {
     const val baseUrl = "https://api.openweathermap.org/data/2.5/"
-    val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-
-    fun getInstance(): Retrofit {
-        return Retrofit.Builder().baseUrl(baseUrl)
-            .addConverterFactory(MoshiConverterFactory.create(moshi)).build()
-    }
+    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    val instance = Retrofit.Builder().baseUrl(baseUrl)
+        .addConverterFactory(MoshiConverterFactory.create(moshi)).build()
 }
