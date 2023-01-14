@@ -7,6 +7,7 @@ import com.example.composeweatherapp.data.LocationService
 import com.example.composeweatherapp.data.WeatherRepository
 import com.example.composeweatherapp.data.toForecastData
 import com.example.composeweatherapp.data.toWeatherData
+import com.example.composeweatherapp.domain.ForecastData
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,17 @@ class WeatherViewModel(
     private val _weatherData =
         MutableStateFlow(WeatherUiState(weatherData = null, forecastData = null))
     val weatherData: StateFlow<WeatherUiState> = _weatherData.asStateFlow()
+
+    val fiveDayDailyForecast: ForecastData?
+        get() {
+            if (weatherData.value.forecastData == null) {
+                return null
+            }
+            val filteredList = weatherData.value.forecastData!!.list.filterIndexed { index, _ ->
+                index % 7 == 0
+            }
+            return ForecastData(filteredList)
+        }
 
     fun getActualWeatherDataAndForecast() {
         _weatherData.value = weatherData.value.copy(

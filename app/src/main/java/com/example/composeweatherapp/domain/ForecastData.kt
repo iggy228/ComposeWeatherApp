@@ -4,16 +4,16 @@ data class ForecastData(
     val list: List<ForecastDataListItem>
 )
 
-class ForecastDataListItem(
-    main: ForecastDataListItemMain,
-    weather: ForecastDataListItemWeather,
+data class ForecastDataListItem(
+    val main: ForecastDataListItemMain,
+    val weather: ForecastDataListItemWeather,
 )
 
-class ForecastDataListItemMain(
-    temperature: Double
+data class ForecastDataListItemMain(
+    val temperature: Double
 )
 
-class ForecastDataListItemWeather(
-    main: String,
-    description: String
+data class ForecastDataListItemWeather(
+    val main: String,
+    val description: String
 )
