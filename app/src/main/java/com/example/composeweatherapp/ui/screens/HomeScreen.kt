@@ -1,9 +1,6 @@
 package com.example.composeweatherapp.ui.screens
 
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,18 +17,15 @@ import com.example.composeweatherapp.data.WeatherApi
 import com.example.composeweatherapp.data.WeatherRepository
 import com.example.composeweatherapp.helpers.LocationServiceHelper
 import com.example.composeweatherapp.helpers.RetrofitHelper
-import com.example.composeweatherapp.ui.components.WeatherDailyForecastBox
+import com.example.composeweatherapp.ui.components.WeatherForecastRow
 import com.example.composeweatherapp.ui.layouts.MainLayout
 import com.example.composeweatherapp.utils.WeatherType
+import com.example.composeweatherapp.utils.formatCurrentDate
 import com.example.composeweatherapp.utils.mapWeatherIcon
 import com.example.composeweatherapp.viewmodel.WeatherViewModel
 import com.example.composeweatherapp.viewmodel.WeatherViewModelFactory
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
-
-val datetime = Date()
-val formatter = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,10 +44,11 @@ fun HomeScreen(
     LaunchedEffect(key1 = null) {
         weatherViewModel.getActualWeatherDataAndForecast()
     }
+
     Scaffold(
         modifier = modifier,
     ) { padding ->
-        if (weatherUiState.loading || weatherUiState.weatherData == null) {
+        if (weatherUiState.loading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -62,7 +57,22 @@ fun HomeScreen(
             ) {
                 CircularProgressIndicator()
             }
-        } else {
+        }
+        if (weatherUiState.error != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = weatherUiState.error!!,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+        if (weatherUiState.weatherData != null && weatherUiState.forecastData != null) {
             MainLayout(modifier = Modifier.padding(padding)) {
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween
@@ -78,7 +88,7 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.surface
                         )
                         Text(
-                            text = formatter.format(datetime),
+                            text = formatCurrentDate(),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.surface
                         )
@@ -121,42 +131,12 @@ fun HomeScreen(
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
-                            .padding(bottom = 16.dp)
-                            .scrollable(
-                                rememberScrollState(),
-                                orientation = Orientation.Horizontal
-                            )
-                    ) {
-                        if (weatherViewModel.fiveDayDailyForecast?.list == null) {
-                            Text(text = "Forecast wasn't loaded")
-                        } else {
-                            for (forecastItem in weatherViewModel.fiveDayDailyForecast!!.list.subList(
-                                0,
-                                3
-                            )) {
-                                WeatherDailyForecastBox(
-                                    temperature = forecastItem.main.temperature,
-                                    icon = {
-                                        Icon(
-                                            painter = painterResource(
-                                                mapWeatherIcon[WeatherType.valueOf(
-                                                    forecastItem.weather.main
-                                                )] ?: R.drawable.sunny
-                                            ),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.surface,
-                                        )
-                                    },
-                                    label = "Tommorow",
-                                )
-                            }
-                        }
-                    }
+                    WeatherForecastRow(
+                        forecastData = weatherUiState.forecastData!!.list.subList(
+                            0,
+                            3
+                        )
+                    )
                 }
             }
         }

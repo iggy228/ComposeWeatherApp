@@ -5,14 +5,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.composeweatherapp.data.LocationService
 import com.example.composeweatherapp.data.WeatherRepository
-import com.example.composeweatherapp.data.toForecastData
-import com.example.composeweatherapp.data.toWeatherData
 import com.example.composeweatherapp.domain.ForecastData
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WeatherViewModel(
     private val weatherRepository: WeatherRepository,
@@ -42,42 +41,61 @@ class WeatherViewModel(
 
         currentLocation.addOnSuccessListener { location ->
             viewModelScope.launch {
-                val currentWeather = async {
-                    weatherRepository.getWeatherData(
-                        (location?.latitude ?: 0.0),
-                        (location?.longitude ?: 0.0)
-                    )?.toWeatherData()
+                val currentWeather =
+                    withContext(Dispatchers.Default) {
+                        weatherRepository.getWeatherData(
+                            (location?.latitude ?: 0.0),
+                            (location?.longitude ?: 0.0)
+                        )
+                    }
+                val forecastData =
+                    withContext(Dispatchers.Default) {
+                        weatherRepository.getForecastData(
+                            (location?.latitude ?: 0.0),
+                            (location?.longitude ?: 0.0)
+                        )
+                    }
+                if (currentWeather.isSuccess && forecastData.isSuccess) {
+                    _weatherData.value = weatherData.value.copy(
+                        weatherData = currentWeather.getOrNull(),
+                        forecastData = forecastData.getOrNull(),
+                        loading = false,
+                    )
+                } else {
+                    _weatherData.value = weatherData.value.copy(
+                        loading = false,
+                        error = currentWeather.exceptionOrNull()?.message
+                            ?: forecastData.exceptionOrNull()?.message
+                    )
                 }
-                val forecastData = async {
-                    weatherRepository.getForecastData(
-                        (location?.latitude ?: 0.0),
-                        (location?.longitude ?: 0.0)
-                    )?.toForecastData()
-                }
-                _weatherData.value = weatherData.value.copy(
-                    weatherData = currentWeather.await(),
-                    forecastData = forecastData.await(),
-                    loading = false,
-                )
             }
-
         }.addOnFailureListener {
             viewModelScope.launch {
-                val currentWeather = async {
-                    weatherRepository.getWeatherData(
-                        0.0, 0.0
-                    )?.toWeatherData()
+                val currentWeather =
+                    withContext(Dispatchers.Default) {
+                        weatherRepository.getWeatherData(
+                            0.0, 0.0
+                        )
+                    }
+                val forecastData =
+                    withContext(Dispatchers.Default) {
+                        weatherRepository.getForecastData(
+                            0.0, 0.0
+                        )
+                    }
+                if (currentWeather.isSuccess && forecastData.isSuccess) {
+                    _weatherData.value = weatherData.value.copy(
+                        weatherData = currentWeather.getOrNull(),
+                        forecastData = forecastData.getOrNull(),
+                        loading = false,
+                    )
+                } else {
+                    _weatherData.value = weatherData.value.copy(
+                        loading = false,
+                        error = currentWeather.exceptionOrNull()?.message
+                            ?: forecastData.exceptionOrNull()?.message
+                    )
                 }
-                val forecastData = async {
-                    weatherRepository.getForecastData(
-                        0.0, 0.0
-                    )?.toForecastData()
-                }
-                _weatherData.value = weatherData.value.copy(
-                    weatherData = currentWeather.await(),
-                    forecastData = forecastData.await(),
-                    loading = false,
-                )
             }
         }
     }

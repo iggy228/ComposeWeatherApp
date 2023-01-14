@@ -1,6 +1,8 @@
 package com.example.composeweatherapp.data
 
 import com.example.composeweatherapp.BuildConfig
+import com.example.composeweatherapp.domain.ForecastData
+import com.example.composeweatherapp.domain.WeatherData
 
 class WeatherRepository(private val api: WeatherApi) {
     private val apiKey = BuildConfig.WEATHER_API_KEY
@@ -9,25 +11,29 @@ class WeatherRepository(private val api: WeatherApi) {
         lat: Double,
         long: Double,
         units: String = "metric"
-    ): WeatherDataDto? {
-        try {
-            return api.getCurrentWeatherData(lat, long, apiKey, units)
+    ): Result<WeatherData> {
+        return try {
+            Result.success(
+                api.getCurrentWeatherData(lat, long, apiKey, units).toWeatherData()
+            )
         } catch (e: Exception) {
             e.printStackTrace()
+            Result.failure(e)
         }
-        return null
     }
 
     suspend fun getForecastData(
         lat: Double,
         long: Double,
         units: String = "metric"
-    ): ForecastDataDto? {
-        try {
-            return api.getForecastWeatherData(lat, long, apiKey, units)
+    ): Result<ForecastData> {
+        return try {
+            Result.success(
+                api.getForecastWeatherData(lat, long, apiKey, units).toForecastData()
+            )
         } catch (e: Exception) {
             e.printStackTrace()
+            Result.failure(e)
         }
-        return null
     }
 }
